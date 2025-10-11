@@ -57,6 +57,9 @@ struct Result
   Value value;
 };
 
+template <typename Duration, typename Value>
+Result(Duration, Value) -> Result<Duration, Value>;
+
 /**
  * @brief Partial specialization in case a function returns void
  */
@@ -66,44 +69,59 @@ struct Result<Duration, void>
   Duration time;
 };
 
+template <typename Duration>
+Result(Duration) -> Result<Duration, void>;
+
 /*************** performance measure ***************/
 
 /**
  * @brief Call a function and measure its performance
  */
-template <typename Function, typename... Args, typename TimeUnit = std::chrono::milliseconds>
-auto performance_measure_impl(Function&& func, Args&&... args)
+template <typename TimeUnit = std::chrono::nanoseconds, typename Function, typename... Args>
+auto performance_measure_impl(Function&& func, Args&&... args) -> Result<TimeUnit, std::invoke_result_t<Function, Args...>>
 {
   using R = std::invoke_result_t<Function, Args...>;
-  using Clock = std::chrono::system_clock;
+  using FinalResult = Result<TimeUnit, R>;
+  using Clock = std::chrono::steady_clock;
 
   if constexpr (std::is_void_v<R>) {
     Clock::time_point start = Clock::now();
     std::invoke(std::forward<Function>(func), std::forward<Args>(args)...);
     Clock::time_point end = Clock::now();
-    return Result{std::chrono::duration_cast<TimeUnit>(end - start)};
+    return FinalResult{std::chrono::duration_cast<TimeUnit>(end - start)};
+  } else {
+    Clock::time_point start = Clock::now();
+    auto value = std::invoke(std::forward<Function>(func), std::forward<Args>(args)...);
+    Clock::time_point end = Clock::now();
+    return FinalResult{std::chrono::duration_cast<TimeUnit>(end - start), value};
   }
-
-  Clock::time_point start = Clock::now();
-  auto value = std::invoke(std::forward<Function>(func), std::forward<Args>(args)...);
-  Clock::time_point end = Clock::now();
-  return Result{std::chrono::duration_cast<TimeUnit>(end - start), value};
 }
 
-template <typename R, typename... Args, typename TimeUnit = std::chrono::milliseconds>
+template <typename TimeUnit = std::chrono::milliseconds, typename R, typename... Args>
 auto performance_measure(const std::vector<std::function<R(Args...)>>& func_list, const std::vector<std::tuple<Args...>>& arg_list)
 {
+  using ImplResult = Result<std::chrono::nanoseconds, R>;
+
   for (size_t i = 0; i != func_list.size(); ++i) {
     auto func = func_list[i];
     std::println("Function {}:", i);
+    ImplResult baseline{};
     for (size_t j = 0; j != arg_list.size(); ++j) {
       auto result = std::apply(
-          [&func](const auto&... args)
+          [func](auto... args) -> ImplResult
           {
             return performance_measure_impl(func, args...);
           },
           arg_list[j]);
-      std::println("    Case {}: {}{}", j, result.time.count(), time_unit<TimeUnit>());
+      if (j == 0) {
+        baseline = result;
+      }
+
+      auto time_count = std::chrono::duration_cast<TimeUnit>(result.time).count();
+      std::string unit = time_unit<TimeUnit>();
+      double ratio = static_cast<double>(result.time.count()) / baseline.time.count();
+
+      std::println("    Case {}: {:>9}{} ({:.1f})", j, time_count, unit, ratio);
     }
     std::println("");
   }
