@@ -19,5 +19,6 @@ macro(add_test_executable TEST_NAME)
     target_link_libraries(${TEST_NAME}
         PRIVATE GTest::gtest_main
     )
+    target_include_directories(${TEST_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     gtest_discover_tests(${TEST_NAME})
 endmacro()

@@ -7,6 +7,7 @@
 #define MEASURE__H
 
 #include <chrono>
+#include <cmath>
 #include <functional>
 #include <print>
 #include <string>
@@ -19,109 +20,114 @@
  * @brief Get time unit as string
  */
 template <typename TimeUnit>
-std::string time_unit();
+const char* time_unit();
 
 template <>
-std::string time_unit<std::chrono::seconds>()
+const char* time_unit<std::chrono::seconds>()
 {
   return "s";
 }
 
 template <>
-std::string time_unit<std::chrono::milliseconds>()
+const char* time_unit<std::chrono::milliseconds>()
 {
   return "ms";
 }
 
 template <>
-std::string time_unit<std::chrono::microseconds>()
+const char* time_unit<std::chrono::microseconds>()
 {
   return "us";
 }
 
 template <>
-std::string time_unit<std::chrono::nanoseconds>()
+const char* time_unit<std::chrono::nanoseconds>()
 {
   return "ns";
 }
-
-/*************** data class of performance measure ***************/
-
-/**
- * @brief Store time duration and return value of a function call
- */
-template <typename Duration, typename Value>
-struct Result
-{
-  Duration time;
-  Value value;
-};
-
-template <typename Duration, typename Value>
-Result(Duration, Value) -> Result<Duration, Value>;
-
-/**
- * @brief Partial specialization in case a function returns void
- */
-template <typename Duration>
-struct Result<Duration, void>
-{
-  Duration time;
-};
-
-template <typename Duration>
-Result(Duration) -> Result<Duration, void>;
-
 /*************** performance measure ***************/
 
 /**
  * @brief Call a function and measure its performance
  */
 template <typename TimeUnit = std::chrono::nanoseconds, typename Function, typename... Args>
-auto performance_measure_impl(Function&& func, Args&&... args) -> Result<TimeUnit, std::invoke_result_t<Function, Args...>>
+auto measure_one_case(Function&& func, Args&&... args)
 {
-  using R = std::invoke_result_t<Function, Args...>;
-  using FinalResult = Result<TimeUnit, R>;
   using Clock = std::chrono::steady_clock;
 
-  if constexpr (std::is_void_v<R>) {
-    Clock::time_point start = Clock::now();
-    std::invoke(std::forward<Function>(func), std::forward<Args>(args)...);
-    Clock::time_point end = Clock::now();
-    return FinalResult{std::chrono::duration_cast<TimeUnit>(end - start)};
-  } else {
-    Clock::time_point start = Clock::now();
-    auto value = std::invoke(std::forward<Function>(func), std::forward<Args>(args)...);
-    Clock::time_point end = Clock::now();
-    return FinalResult{std::chrono::duration_cast<TimeUnit>(end - start), value};
-  }
+  Clock::time_point start = Clock::now();
+  std::invoke(std::forward<Function>(func), std::forward<Args>(args)...);
+  Clock::time_point end = Clock::now();
+  return std::chrono::duration_cast<TimeUnit>(end - start);
 }
 
-template <typename TimeUnit = std::chrono::milliseconds, typename R, typename... Args>
-auto performance_measure(const std::vector<std::function<R(Args...)>>& func_list, const std::vector<std::tuple<Args...>>& arg_list)
+template <typename InternalTimeUnit>
+using Result = std::vector<std::vector<InternalTimeUnit>>;
+
+template <typename InternalTimeUnit = std::chrono::nanoseconds, typename R, typename... Args>
+auto measure_all_case(const std::vector<std::function<R(Args...)>>& func_list, const std::vector<std::tuple<Args...>>& arg_list)
 {
-  using ImplResult = Result<std::chrono::nanoseconds, R>;
+  Result<InternalTimeUnit> result(func_list.size());
 
   for (size_t i = 0; i != func_list.size(); ++i) {
     auto func = func_list[i];
-    std::println("Function {}:", i);
-    ImplResult baseline{};
     for (size_t j = 0; j != arg_list.size(); ++j) {
-      auto result = std::apply(
-          [func](auto... args) -> ImplResult
+      auto time_ellapsed = std::apply(
+          [func](auto... args)
           {
-            return performance_measure_impl(func, args...);
+            return measure_one_case<InternalTimeUnit>(func, args...);
           },
           arg_list[j]);
-      if (j == 0) {
-        baseline = result;
-      }
 
-      auto time_count = std::chrono::duration_cast<TimeUnit>(result.time).count();
-      std::string unit = time_unit<TimeUnit>();
-      double ratio = static_cast<double>(result.time.count()) / baseline.time.count();
+      result[i].push_back(time_ellapsed);
+    }
+  }
+  return result;
+}
 
-      std::println("    Case {}: {:>9}{} ({:.1f})", j, time_count, unit, ratio);
+/*************** printing result ***************/
+
+std::pair<double, const char*> time_to_string(std::chrono::nanoseconds time)
+{
+  using namespace std::chrono;
+
+  double count = static_cast<double>(time.count());
+
+  if (count >= 1'000'000'000.0) { // >= 1 second
+    auto d = duration_cast<duration<double>>(time);
+    return {d.count(), time_unit<std::chrono::seconds>()};
+  } else if (count >= 1'000'000.0) { // >= 1 millisecond
+    auto d = duration_cast<duration<double, std::milli>>(time);
+    return {d.count(), time_unit<std::chrono::milliseconds>()};
+  } else if (count >= 1000.0) { // >= 1 microsecond
+    auto d = duration_cast<duration<double, std::micro>>(time);
+    return {d.count(), time_unit<std::chrono::microseconds>()};
+  } else { // nanosecond
+    return {count, time_unit<std::chrono::nanoseconds>()};
+  }
+}
+template <typename R, typename... Args>
+void performance_measure(const std::vector<std::function<R(Args...)>>& func_list, const std::vector<std::tuple<Args...>>& arg_list)
+{
+  Result<std::chrono::nanoseconds> result = measure_all_case(func_list, arg_list);
+  for (size_t i = 0; i != func_list.size(); ++i) {
+    auto [min_it, max_it] = std::minmax_element(result[i].begin(), result[i].end(),
+                                                [](const std::chrono::nanoseconds left, const std::chrono::nanoseconds right)
+                                                {
+                                                  return left.count() < right.count();
+                                                });
+    std::chrono::nanoseconds min = *min_it, max = *max_it;
+
+    std::vector<double> ratio;
+    for (const auto& time : result[i]) {
+      ratio.push_back(static_cast<double>(time.count()) / min.count());
+    }
+
+    std::println("Function {}", i);
+    for (size_t j = 0; j != result[i].size(); ++j) {
+      auto [time_value, unit_str] = time_to_string(result[i][j]);
+
+      std::println("  {:>6.1f} {:<2} ({:>5.1f})", time_value, unit_str, ratio[j]);
     }
     std::println("");
   }

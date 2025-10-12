@@ -81,13 +81,13 @@ int main()
 {
   auto function_list0 = make_function_list(func0);
   auto param_list0 = make_param_list<int>({{250}, {500}, {1000}, {2000}});
-  performance_measure<std::chrono::nanoseconds>(function_list0, param_list0);
+  performance_measure(function_list0, param_list0);
 
   auto function_list1 = make_function_list(func1);
   auto param_list1 = make_param_list<int>({{25000}, {50000}, {100000}, {200000}, {400000}, {800000}});
-  performance_measure<std::chrono::nanoseconds>(function_list1, param_list1);
+  performance_measure(function_list1, param_list1);
 
   auto function_list2 = make_function_list(func2);
   auto param_list2 = make_param_list<int>({{100000}, {200000}, {400000}, {800000}, {1600000}, {3200000}, {6400000}});
-  performance_measure<std::chrono::nanoseconds>(function_list2, param_list2);
+  performance_measure(function_list2, param_list2);
 }

@@ -69,5 +69,5 @@ int main()
 {
   auto func_list = make_function_list(func0, func1, func2, func3, func4, func5);
   auto param_list = make_param_list<int>({{10}, {100}, {1000}});
-  performance_measure<std::chrono::nanoseconds>(func_list, param_list);
+  performance_measure(func_list, param_list);
 }
