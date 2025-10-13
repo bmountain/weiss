@@ -14,11 +14,11 @@ FetchContent_MakeAvailable(googletest)
 include(GoogleTest)
 enable_testing()
 
-macro(add_test_executable TEST_NAME)
+function(add_test_executable TEST_NAME)
     add_executable(${TEST_NAME} ${ARGN})
     target_link_libraries(${TEST_NAME}
         PRIVATE GTest::gtest_main
     )
     target_include_directories(${TEST_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     gtest_discover_tests(${TEST_NAME})
-endmacro()
+endfunction()

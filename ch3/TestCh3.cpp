@@ -1,4 +1,5 @@
 #include "Ch3.h"
+#include "List.h"
 #include <algorithm>
 #include <gtest/gtest.h>
 #include <list>
@@ -125,4 +126,66 @@ TEST(TestList, Remove)
   EXPECT_EQ(li.size(), 2);
   li.remove(4);
   EXPECT_EQ(li.size(), 2);
+}
+
+TEST(TestList2, Minus)
+{
+  List<int> li;
+  li.push_back(1);
+  li.push_back(2);
+  li.push_back(3);
+  auto it = li.end();
+  it = it - 2;
+  EXPECT_EQ(*it, 2);
+}
+
+TEST(TestList2, Plus)
+{
+  List<int> li;
+  li.push_back(1);
+  li.push_back(2);
+  li.push_back(3);
+  auto it = li.begin();
+  it = it + 2;
+  EXPECT_EQ(*it, 3);
+}
+
+TEST(TestList2, Splice)
+{
+  List<int> li;
+  li.push_back(1);
+  li.push_back(2);
+  li.push_back(3);
+  auto it = li.begin() + 1;
+
+  List<int> li0;
+  li0.push_back(4);
+  li0.push_back(5);
+  li.splice(it, li0);
+  it = li.begin();
+  EXPECT_EQ(*++it, 4);
+  EXPECT_EQ(*++it, 5);
+  EXPECT_EQ(li0.size(), 0);
+}
+
+TEST(TestList2, ReverseIterator)
+{
+  List<int> li;
+  li.push_back(1);
+  li.push_back(2);
+  li.push_back(3);
+  testing::internal::CaptureStdout();
+  for (auto it = li.rbegin(); it != li.rend(); ++it) {
+    std::cout << *it << std::endl;
+  }
+  std::string actual = testing::internal::GetCapturedStdout();
+  EXPECT_STREQ(actual.c_str(), "3\n2\n1\n");
+
+  const auto li0 = li;
+  testing::internal::CaptureStdout();
+  for (auto it = li.rbegin(); it != li.rend(); ++it) {
+    std::cout << *it << std::endl;
+  }
+  actual = testing::internal::GetCapturedStdout();
+  EXPECT_STREQ(actual.c_str(), "3\n2\n1\n");
 }
