@@ -1,0 +1,16 @@
+#include "Ch3.h"
+#include <iostream>
+#include <iterator>
+#include <stack>
+#include <string>
+
+/**
+ * @brief Check balancedness of the language consisting of begin/end, (), [], {}
+ */
+bool isBalancedPascal()
+{
+  std::stack<std::string> st;
+  for (std::istream_iterator<std::string> it(std::cin); it != std::istream_iterator<std::string>(); ++it){
+    
+  }
+}

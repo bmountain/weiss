@@ -189,3 +189,61 @@ TEST(TestList2, ReverseIterator)
   actual = testing::internal::GetCapturedStdout();
   EXPECT_STREQ(actual.c_str(), "3\n2\n1\n");
 }
+
+TEST(TestPascal, Basic)
+{
+  using enum Language;
+  std::string str = "begin ( [ { } ] ) end";
+  EXPECT_TRUE(ch3::isBalancedPascal(str, Pascal));
+
+  str = "( [ { ) } ] )";
+  EXPECT_FALSE(ch3::isBalancedPascal(str, Pascal));
+
+  str = "/* [ ( [ ] ) ] */";
+  EXPECT_TRUE(ch3::isBalancedPascal(str, Cpp));
+
+  str = "/* [ ( [ ] ) */";
+  EXPECT_FALSE(ch3::isBalancedPascal(str, Cpp));
+}
+
+TEST(TestCalcPostFix, Basic)
+{
+  EXPECT_EQ(calcPostFix("1 2 +"), 3);
+  EXPECT_EQ(calcPostFix("1 2 + 4 * 2 / 1 -"), 5);
+  EXPECT_ANY_THROW(calcPostFix("1 1"));
+}
+
+TEST(TestMinStack, Basic)
+{
+  using stack = ch3::MinStack<int>;
+
+  stack st;
+  st.push(1);
+  st.push(2);
+  EXPECT_EQ(st.top(), 2);
+  EXPECT_EQ(st.findMin(), 1);
+}
+
+TEST(TestMultiStack, Basic)
+{
+  using stack = ch3::MultiStack<int>;
+  stack st(3);
+
+  st.push(1, 1);
+  st.push(2, 2);
+  st.push(3, 3);
+  st.push(1, 4);
+  EXPECT_EQ(st.top(1), 4);
+  EXPECT_EQ(st.top(2), 2);
+  st.pop(1);
+  EXPECT_EQ(st.top(1), 1);
+}
+
+TEST(TestReversePrint, Basic)
+{
+  std::forward_list<int> li = {1, 2, 3};
+  testing::internal::CaptureStdout();
+  ch3::reverse_print(li);
+  auto actual = testing::internal::GetCapturedStdout();
+  EXPECT_STREQ(actual.c_str(), "3 2 1 \n");
+}

@@ -12,6 +12,8 @@ endfunction()
 add_library(${LIB_NAME} 
   TwoLists.cpp
   Josephas.cpp
+  IsBalanced.cpp
+  CalcPostFix.cpp
 )
 target_include_directories(ch3 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -21,6 +23,9 @@ configure_executable(TwoListsMain)
 
 add_executable(JosephasMain JosephasMain.cpp)
 configure_executable(JosephasMain)
+
+add_executable(MainMinStack MainMinStack.cpp)
+configure_executable(MainMinStack)
 
 # Test
 add_test_executable(TestCh3 TestCh3.cpp)

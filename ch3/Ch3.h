@@ -1,10 +1,17 @@
 #ifndef CH_3_H
 #define CH_3_H
 
+#include <algorithm>
+#include <array>
+#include <forward_list>
 #include <list>
+#include <map>
 #include <memory>
 #include <numeric>
+#include <optional>
 #include <print>
+#include <stack>
+#include <stdexcept>
 #include <vector>
 
 namespace ch3
@@ -227,6 +234,125 @@ private:
   iterator head{new Node{}};
 };
 
+enum class Language
+{
+  Pascal,
+  Cpp
+};
+
+bool isBalancedPascal(std::string_view, Language);
+
+int calcPostFix(std::string_view);
+
+template <typename Object>
+class MinStack
+{
+  class Data
+  {
+    Object value_;
+    Object min_;
+
+  public:
+    Data(Object value, Object min)
+    : value_(value)
+    , min_(min)
+    {
+    }
+    Object value() const
+    {
+      return value_;
+    }
+    Object min() const
+    {
+      return min_;
+    }
+  };
+
+  std::list<Data> data_{};
+
+  Data& topData()
+  {
+    return data_.back();
+  }
+
+public:
+  void push(Object obj)
+  {
+    Object min;
+    if (data_.empty()) {
+      min = obj;
+    } else {
+      min = std::min(obj, topData().min());
+    }
+    data_.push_back(Data(obj, min));
+  }
+
+  Object top()
+  {
+    return topData().value();
+  }
+
+  void pop()
+  {
+    data_.pop_back();
+  }
+
+  Object findMin()
+  {
+    if (data_.empty()) {
+      throw std::runtime_error("Empty stack");
+    }
+    return topData().min();
+  }
+};
+
+template <typename Object>
+class MultiStack
+{
+  static constexpr size_t arraySize = 10000;
+  std::array<Object, arraySize> mArray;
+  std::map<size_t, size_t> mIndexMap{};
+  size_t mNumStack = 3;
+
+public:
+  MultiStack(size_t numStack)
+  : mNumStack(numStack)
+  {
+    for (size_t i = 0; i != mNumStack; ++i) {
+      mIndexMap[i] = i;
+    }
+  }
+
+  void push(size_t n, Object obj)
+  {
+    mArray[mIndexMap[n]] = obj;
+    mIndexMap[n] += mNumStack;
+  }
+
+  Object& top(size_t n)
+  {
+    return mArray[mIndexMap[n] - mNumStack];
+  }
+
+  void pop(size_t n)
+  {
+    mIndexMap[n] -= mNumStack;
+  }
+};
+
+template <typename Object>
+void reverse_print(const std::forward_list<Object>& list)
+{
+  std::stack<Object> st;
+  for (auto it = list.cbegin(); it != list.cend(); ++it) {
+    st.push(*it);
+  }
+  while (!st.empty()) {
+    std::print("{} ", st.top());
+    st.pop();
+  }
+  std::println("");
+}
 } // namespace ch3
 
 #endif /* CH_3_H */
