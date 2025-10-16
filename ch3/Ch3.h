@@ -353,6 +353,229 @@ void reverse_print(const std::forward_list<Object>& list)
   }
   std::println("");
 }
+
+template <typename Object>
+class deque
+{
+  std::list<Object> mList;
+
+public:
+  void push(Object obj)
+  {
+    mList.push_front(obj);
+  }
+  Object pop()
+  {
+    auto ret = mList.front();
+    mList.pop_front();
+    return ret;
+  }
+  void inject(Object obj)
+  {
+    mList.push_back(obj);
+  }
+  Object eject()
+  {
+    auto ret = mList.back();
+    mList.pop_back();
+    return ret;
+  }
+};
+
+template <typename Object>
+class SelfAdjustingList
+{
+
+  class Node
+  {
+    Object object_;
+    Node* next_ = nullptr;
+    Node* prev_ = nullptr;
+    size_t index_;
+
+  public:
+    Node() = default;
+    Node(const Object& obj = Object{})
+    : object_{obj}
+    {
+    }
+    Node(const Object& obj, size_t index)
+    : object_{obj}
+    , index_{index}
+    {
+    }
+    size_t getIndex() const
+    {
+      return index_;
+    }
+    void setObject(const Object& object)
+    {
+      object_ = object;
+    }
+    void setNext(Node* node)
+    {
+      next_ = node;
+    }
+    void setPrev(Node* node)
+    {
+      prev_ = node;
+    }
+    const Object& getObject() const
+    {
+      return object_;
+    }
+    Object& getObject()
+    {
+      return object_;
+    }
+    Node* getNext() const
+    {
+      return next_;
+    }
+    Node* getPrev() const
+    {
+      return prev_;
+    }
+  };
+
+  class iterator
+  {
+    Node* current = nullptr;
+
+  public:
+    friend class SelfAdjustingList<Object>;
+
+    iterator(Node* node)
+    : current{node}
+    {
+    }
+    iterator operator++()
+    {
+      current = current->getNext();
+      return *this;
+    }
+    iterator operator--()
+    {
+      current = current->getPrev();
+      return *this;
+    }
+    iterator operator++(int)
+    {
+      auto ret = current;
+      current = current->getNext();
+      return ret;
+    }
+    iterator operator--(int)
+    {
+      auto ret = current;
+      current = current->getPrev();
+      return ret;
+    }
+    Object& operator*()
+    {
+      return current->getObject();
+    }
+    Object& operator*() const
+    {
+      return current->getObject();
+    }
+    bool operator==(const iterator& it) const
+    {
+      return current == it.current;
+    }
+    bool operator!=(const iterator& it) const
+    {
+      return !(current == it.current);
+    }
+  };
+
+  static const size_t mArraySize = 1000;
+  std::array<std::unique_ptr<Node>, mArraySize> mArray{};
+  Node* mBegin = nullptr;
+
+  size_t getSlot()
+  {
+    if (!mBegin) {
+      return 0;
+    }
+    for (size_t i = 0; i != mArraySize; ++i) {
+      if (!mArray[i]) {
+        return i;
+      }
+    }
+    throw std::runtime_error{"Array is Full!"};
+  }
+
+  void addNode(std::unique_ptr<Node>&& node, size_t index)
+  {
+    mArray[index] = std::move(node);
+  }
+
+public:
+  SelfAdjustingList()
+  {
+    for (size_t i = 0; i != mArraySize; ++i) {
+      mArray[i] = nullptr;
+    }
+  }
+
+  iterator begin()
+  {
+    return iterator{mBegin};
+  }
+
+  iterator end()
+  {
+    return iterator{nullptr};
+  }
+
+  void push(const Object& obj)
+  {
+    size_t slot = getSlot();
+    auto ptr = std::make_unique<Node>(obj, slot);
+    if (mBegin) {
+      mBegin->setPrev(ptr.get());
+      ptr->setNext(mBegin);
+    } else {
+      mBegin = ptr.get();
+    }
+    mBegin = ptr.get();
+    addNode(std::move(ptr), slot);
+  }
+
+  void remove(iterator it)
+  {
+    Node* node = it.current;
+    if (node->getPrev()) {
+      node->getPrev()->setNext(node->getNext());
+    }
+    if (node->getNext()) {
+      node->getNext()->setPrev(node->getPrev());
+    }
+    size_t index = node->getIndex();
+    mArray[index].reset();
+  }
+
+  iterator find(const Object& obj)
+  {
+    Node* node = mBegin;
+    while (node != nullptr && node->getObject() != obj) {
+      node = node->getNext();
+    }
+    if (!node) {
+      return end();
+    }
+    if (node == mBegin) {
+      return begin();
+    }
+    node->setPrev(nullptr);
+    node->setNext(mBegin);
+    mBegin->setNext(node);
+    mBegin = node;
+    return begin();
+  }
+};
+
 } // namespace ch3
 
 #endif /* CH_3_H */

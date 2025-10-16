@@ -1,4 +1,5 @@
 #include "Ch3.h"
+#include "Convert.h"
 #include "List.h"
 #include <algorithm>
 #include <gtest/gtest.h>
@@ -246,4 +247,38 @@ TEST(TestReversePrint, Basic)
   ch3::reverse_print(li);
   auto actual = testing::internal::GetCapturedStdout();
   EXPECT_STREQ(actual.c_str(), "3 2 1 \n");
+}
+
+TEST(TestDeque, Basic)
+{
+  ch3::deque<int> dq;
+  dq.push(1);
+  dq.push(2);
+  dq.inject(3);
+  EXPECT_EQ(dq.pop(), 2);
+  EXPECT_EQ(dq.eject(), 3);
+}
+
+TEST(TestSelfAdjustingList, Basic)
+{
+  ch3::SelfAdjustingList<int> list;
+  list.push(1);
+  EXPECT_EQ(*list.begin(), 1);
+
+  list.push(2);
+  list.find(2);
+  EXPECT_EQ(*list.begin(), 2);
+}
+
+TEST(TestConvert, Basic)
+{
+  std::string infix = "1 + 2 * 3 - 4";
+  std::string postfix = "1 2 3 * + 4 - ";
+  EXPECT_STREQ(ch3::infix_to_postfix(infix).c_str(), postfix.c_str());
+  infix = "( 1 + 2 ) * 3";
+  postfix = "1 2 + 3 * ";
+  EXPECT_STREQ(ch3::infix_to_postfix(infix).c_str(), postfix.c_str());
+  infix = "1 + 2 ^ 3 * 4";
+  postfix = "1 2 3 ^ 4 * + ";
+  EXPECT_STREQ(ch3::infix_to_postfix(infix).c_str(), postfix.c_str());
 }

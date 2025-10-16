@@ -14,6 +14,7 @@ add_library(${LIB_NAME}
   Josephas.cpp
   IsBalanced.cpp
   CalcPostFix.cpp
+  Convert.cpp
 )
 target_include_directories(ch3 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
