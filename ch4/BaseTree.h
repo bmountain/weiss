@@ -24,8 +24,17 @@ public:
 
   // accesser
   using iterator = BaseTreeIterator<Comparable, Node>;
-  iterator& begin();
-  iterator& end();
+
+  iterator begin()
+  {
+    return iterator(this->root.get());
+  }
+
+  iterator end()
+  {
+    return iterator(nullptr);
+  }
+
   Comparable findMin() const;
   Comparable findMax() const;
   bool contains(const Comparable& x) const;
@@ -33,14 +42,53 @@ public:
   void printTree(std::ostream& os = std::cout) const;
 
   // mutator
-  virtual void insert(const Comparable& x) = 0;
-  virtual void remove(const Comparable& x) = 0;
+  void insert(const Comparable& x)
+  {
+    insert(x, this->root);
+  }
+  void remove(const Comparable& x)
+  {
+    remove(x, this->root);
+  }
 
 protected:
   std::unique_ptr<Node> root = nullptr;
 
-  virtual void insert(const Comparable&, std::unique_ptr<Node>&) = 0;
-  virtual void remove(const Comparable&, std::unique_ptr<Node>&) = 0;
+  void insert(const Comparable& x, std::unique_ptr<Node>& node)
+  {
+    if (!node) {
+      node = std::make_unique<Node>(x);
+      return;
+    }
+    if (x < node->element) {
+      insert(x, node->left);
+    }
+    if (x > node->element) {
+      insert(x, node->right);
+    }
+  }
+
+  void remove(const Comparable& x, std::unique_ptr<Node>& node)
+  {
+    if (!node) {
+      return;
+    }
+    if (x < node->element) {
+      remove(x, node->left);
+      return;
+    }
+    if (x > node->element) {
+      remove(x, node->right);
+      return;
+    }
+
+    if (node->right) {
+      node->element = this->findMin(node->right)->element;
+      remove(node->element, node->right);
+      return;
+    }
+    node = std::move(node->left);
+  }
 
   Node* findMin(const std::unique_ptr<Node>&) const;
   Node* findMax(const std::unique_ptr<Node>&) const;
