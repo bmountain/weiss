@@ -20,5 +20,5 @@ function(add_test_executable TEST_NAME)
         PRIVATE GTest::gtest_main
     )
     target_include_directories(${TEST_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-    gtest_discover_tests(${TEST_NAME})
+    gtest_discover_tests(${TEST_NAME} TIMEOUT 5)
 endfunction()
