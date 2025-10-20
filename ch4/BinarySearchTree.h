@@ -6,17 +6,18 @@
 
 #include "BaseTree.h"
 #include "BinarySearchIterator.h"
-#include "BinarySearchNode.h"
 
-/*************** Binary Search Tree ***************/
-
-template <typename Comparable>
-class BinarySearchTree : public BaseTree<Comparable, BinarySearchNode<Comparable>>
+/**
+ * Standard implementation of binary tree.
+ * Assumes that an iterator is constructed from a row pointer to a node.
+ */
+template <typename Comparable, template <typename> typename Node, template <typename, template <typename> typename> typename Iterator>
+class BinarySearchTree : public BaseTree<Comparable, Node, Iterator>
 {
-  using Node = BinarySearchNode<Comparable>;
 
 public:
-  using iterator = BinarySearchIterator<Comparable, Node>;
+  using node_type = Node<Comparable>;
+  using iterator = Iterator<Comparable, Node>;
   iterator begin()
   {
     return iterator(this->root.get());
@@ -28,7 +29,8 @@ public:
   }
 
 private:
-  friend class BinarySearchIterator<Comparable, Node>;
+  template <typename C, template <typename> typename N>
+  friend class Iterator;
 };
 
 #endif /* BINARY_SEARCH_TREE_H */

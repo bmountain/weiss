@@ -3,9 +3,9 @@
 #include <set>
 #include <vector>
 
-TEST(TestBinarySearchTree, Insert)
+TEST(TestParentTree, Insert)
 {
-  BinarySearchTree<int> tree;
+  ParentTree<int> tree;
   for (int i = 0; i != 10; ++i) {
     tree.insert(i);
   }
@@ -13,9 +13,9 @@ TEST(TestBinarySearchTree, Insert)
   EXPECT_EQ(tree.findMax(), 9);
 }
 
-TEST(TestBinarySearchTree, Remove)
+TEST(TestParentTree, Remove)
 {
-  BinarySearchTree<int> tree;
+  ParentTree<int> tree;
   for (int i = 0; i != 10; ++i) {
     tree.insert(i);
   }
@@ -30,9 +30,9 @@ TEST(TestBinarySearchTree, Remove)
   EXPECT_EQ(tree.findMin(), 3);
 }
 
-TEST(TestBinarySearchTree, Iterator)
+TEST(TestParentTree, Iterator)
 {
-  BinarySearchTree<int> tree;
+  ParentTree<int> tree;
   std::set<int> numSet;
   std::vector<int> numbers = {5, 1, 3, -1};
   for (const auto n : numbers) {

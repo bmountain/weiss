@@ -4,4 +4,7 @@
 #include "BaseTree.h"
 #include "BinarySearchTree.h"
 
+template <typename Comparable>
+using ParentTree = BinarySearchTree<Comparable, BinarySearchNode, BinarySearchIterator>;
+
 #endif /* CH_4_H */
