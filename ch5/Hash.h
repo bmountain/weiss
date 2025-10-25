@@ -20,4 +20,14 @@ public:
   }
 };
 
+template <>
+class hash<size_t>
+{
+public:
+  size_t operator()(const size_t n) const
+  {
+    return n;
+  }
+};
+
 #endif /* HASH_H */

@@ -3,6 +3,7 @@
 #include "PrimeNumber.h"
 #include "SeparatedChaining.h"
 #include <gtest/gtest.h>
+#include <print>
 
 TEST(TestPrime, Basic)
 {

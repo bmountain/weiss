@@ -12,20 +12,11 @@ public:
   : table(ts)
   , hashFunction(h)
   {
-    for (auto& item : table) {
-      item.state = State::Empty;
-    }
   }
 
   bool contains(const Object& obj) const override
   {
-    return std::find_if(table.begin(),
-                        table.end(),
-                        [obj](Cell cell)
-                        {
-                          return cell.element == obj && cell.state == State::Active;
-                        })
-           != table.end();
+    return table[findPos(obj)].state == State::Active;
   }
 
   bool insert(const Object& obj) override
@@ -45,14 +36,16 @@ public:
       return false;
     }
     table[pos].state = State::Deleted;
+    --currentSize;
     return true;
   }
 
   void clear() override
   {
-    size_t orgSize = table.size();
-    table.clear();
-    table.resize(orgSize);
+    for (auto& cell : table) {
+      cell.state = State::Empty;
+    }
+    currentSize = 0;
   }
 
 private:
@@ -78,35 +71,23 @@ private:
     return hashFunction(object) % table.size();
   }
 
-  bool isActive(size_t pos)
+  bool isActive(size_t pos) const
   {
     return table[pos].state == State::Active;
   }
 
-  bool insertImpl(Object&& obj)
-  {
-    size_t pos = findPos(obj);
-    if (table[pos].state != State::Empty) {
-      return false;
-    }
-    Cell& cell = table[pos];
-    cell.element = std::move(obj);
-    cell.state = State::Active;
-    if (++currentSize > table.size() / 2) {
-      rehash();
-    }
-    return true;
-  }
-
-  size_t findPos(const Object& obj)
+  /**
+   * Find a cell that either contais obj or can store obj
+   */
+  size_t findPos(const Object& obj) const
   {
     size_t pos = calcHashValue(obj);
     size_t offset = 1;
-    while (table[pos].state != State::Empty && table[pos].element != obj) {
+    while (table[pos].state == State::Active && table[pos].element != obj) {
       pos += offset;
       offset += 2;
-      if (offset >= table.size()) {
-        pos %= table.size();
+      if (pos >= table.size()) {
+        pos -= table.size();
       }
     }
     return pos;
@@ -116,9 +97,12 @@ private:
   {
     std::vector<Cell> old = table;
     table.clear();
-    table.resize(old.size() * 2);
-    for (const auto& cell : old) {
-      insert(cell.element);
+    table.resize(nextPrime(old.size() * 2));
+    currentSize = 0;
+    for (auto& cell : old) {
+      if (cell.state == State::Active) {
+        insert(std::move(cell.element));
+      }
     }
   }
 
@@ -126,13 +110,18 @@ private:
   bool insertImpl(T&& obj)
   {
     size_t pos = findPos(obj);
-    if (table[pos].state != State::Empty) {
+    if (table[pos].state == State::Active) {
       return false;
     }
+
+    if (table[pos].state == State::Empty) {
+      ++currentSize;
+    }
+
     Cell& cell = table[pos];
     cell.element = std::forward<T>(obj);
     cell.state = State::Active;
-    if (++currentSize > table.size()) {
+    if (currentSize * 2 > table.size()) {
       rehash();
     }
     return true;
