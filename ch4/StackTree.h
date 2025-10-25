@@ -5,14 +5,14 @@
 #define BINARY_SEARCH_TREE_H
 
 #include "BaseTree.h"
-#include "BinarySearchIterator.h"
+#include "StackIterator.h"
 
 /**
  * Standard implementation of binary tree.
  * Assumes that an iterator is constructed from a row pointer to a node.
  */
 template <typename Comparable, template <typename> typename Node, template <typename, template <typename> typename> typename Iterator>
-class BinarySearchTree : public BaseTree<Comparable, Node, Iterator>
+class StackTree : public BaseTree<Comparable, Node, Iterator>
 {
 
 public:

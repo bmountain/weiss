@@ -67,11 +67,11 @@ public:
   }
 
   // mutator
-  void insert(const Comparable& x)
+  virtual void insert(const Comparable& x)
   {
     insert(x, this->root);
   }
-  void remove(const Comparable& x)
+  virtual void remove(const Comparable& x)
   {
     remove(x, this->root);
   }
@@ -79,21 +79,7 @@ public:
 protected:
   std::unique_ptr<node_type> root = nullptr;
 
-  void insert(const Comparable& x, std::unique_ptr<node_type>& node)
-  {
-    if (!node) {
-      node = std::make_unique<node_type>(x);
-      return;
-    }
-    if (x < node->element) {
-      insert(x, node->left);
-    }
-    if (x > node->element) {
-      insert(x, node->right);
-    }
-  }
-
-  void remove(const Comparable& x, std::unique_ptr<node_type>& node)
+  virtual void remove(const Comparable& x, std::unique_ptr<node_type>& node)
   {
     if (!node) {
       return;
@@ -159,6 +145,21 @@ protected:
     printTree(os, node->left);
     std::println(os, "{}", node->element);
     printTree(os, node->right);
+  }
+
+private:
+  void insert(const Comparable& x, std::unique_ptr<node_type>& node)
+  {
+    if (!node) { // set root
+      node = std::make_unique<node_type>(x);
+      return;
+    }
+    if (x < node->element) {
+      insert(x, node->left);
+    }
+    if (x > node->element) {
+      insert(x, node->right);
+    }
   }
 };
 

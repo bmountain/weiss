@@ -11,15 +11,24 @@
  * This is CRTP.
  */
 template <typename Comparable, typename DerivedNode>
-struct BaseTreeNode
+struct BaseNode
 {
   Comparable element;
   std::unique_ptr<DerivedNode> left = nullptr;
   std::unique_ptr<DerivedNode> right = nullptr;
-  BaseTreeNode(Comparable pElement)
+  BaseNode(Comparable pElement)
   : element(pElement)
   {
   }
+};
+
+/**
+ * Standard node of binary trees
+ */
+template <typename Comparable>
+struct BinaryTreeNode : public BaseNode<Comparable, BinaryTreeNode<Comparable>>
+{
+  using BaseNode<Comparable, BinaryTreeNode<Comparable>>::BaseNode;
 };
 
 /**
@@ -27,25 +36,25 @@ struct BaseTreeNode
  * operator++ would be overridden.
  */
 template <typename Comparable, template <typename> typename Node>
-class BaseTreeIterator
+class BaseIterator
 {
 public:
   using node_type = Node<Comparable>;
-  BaseTreeIterator(node_type* node)
+  BaseIterator(node_type* node)
   : current{node}
   {
   }
-  virtual ~BaseTreeIterator() = default;
-  virtual BaseTreeIterator& operator++() = 0;
+  virtual ~BaseIterator() = default;
+  virtual BaseIterator& operator++() = 0;
   Comparable operator*()
   {
     return this->current->element;
   }
-  bool operator==(const BaseTreeIterator& rhs)
+  bool operator==(const BaseIterator& rhs)
   {
     return this->current == rhs.current;
   }
-  bool operator!=(const BaseTreeIterator& rhs)
+  bool operator!=(const BaseIterator& rhs)
   {
     return !(*this == rhs);
   }

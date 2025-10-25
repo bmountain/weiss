@@ -1,29 +1,20 @@
-#ifndef BINARY_SEARCH_ITERATOR_H
-#define BINARY_SEARCH_ITERATOR_H
+#ifndef STACK_SEARCH_ITERATOR_H
+#define STACK_SEARCH_ITERATOR_H
 
 #include "BaseTreeIterator.h"
 #include <stack>
 
 /**
- * Standard node of binary trees.
- */
-template <typename Comparable>
-struct BinarySearchNode : public BaseTreeNode<Comparable, BinarySearchNode<Comparable>>
-{
-  using BaseTreeNode<Comparable, BinarySearchNode<Comparable>>::BaseTreeNode;
-};
-
-/**
  * Iterator of binary trees that traverse with stack of path.
  */
 template <typename Comparable, template <typename> typename Node>
-class BinarySearchIterator : public BaseTreeIterator<Comparable, Node>
+class StackIterator : public BaseIterator<Comparable, Node>
 {
 public:
-  using node_type = BaseTreeIterator<Comparable, Node>::node_type;
-  using iterator = BinarySearchIterator<Comparable, Node>;
-  BinarySearchIterator(node_type* node)
-  : BaseTreeIterator<Comparable, Node>(node)
+  using node_type = BaseIterator<Comparable, Node>::node_type;
+  using iterator = StackIterator<Comparable, Node>;
+  StackIterator(node_type* node)
+  : BaseIterator<Comparable, Node>(node)
   {
     push_left(node);
   }
@@ -47,7 +38,7 @@ public:
       return *this;
     }
   }
-  using Base = BaseTreeIterator<Comparable, Node>;
+  using Base = BaseIterator<Comparable, Node>;
   using Base::operator*;
   using Base::operator==;
   using Base::operator!=;
@@ -69,4 +60,4 @@ private:
   }
 };
 
-#endif /* BINARY_SEARCH_ITERATOR_H */
+#endif /* STACK_SEARCH_ITERATOR_H */
