@@ -14,7 +14,23 @@ public:
   {
     size_t hv = 0;
     for (const auto& c : str) {
-      hv += c;
+      hv += 37 * hv + c;
+    }
+    return hv;
+  }
+};
+
+template <typename Object>
+class double_hash;
+
+template <>
+struct double_hash<std::string>
+{
+  size_t operator()(const std::string& str) const
+  {
+    size_t hv = 0;
+    for (const auto& c : str) {
+      hv = 103 * hv + c;
     }
     return hv;
   }

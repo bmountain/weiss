@@ -7,7 +7,8 @@
 #include <vector>
 
 template <typename Number>
-auto get_uniform_dist(Number min, Number max) -> typename std::conditional<std::is_integral_v<Number>, std::uniform_int_distribution<Number>, std::uniform_real_distribution<Number>>::type
+auto get_uniform_dist(Number min, Number max) ->
+    typename std::conditional<std::is_integral_v<Number>, std::uniform_int_distribution<Number>, std::uniform_real_distribution<Number>>::type
 {
   if constexpr (std::is_integral_v<Number>) {
     return std::uniform_int_distribution<Number>(min, max);

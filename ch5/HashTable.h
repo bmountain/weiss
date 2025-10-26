@@ -2,14 +2,18 @@
 #define HASH_TABLE_H
 
 #include "BaseHashTable.h"
+#include "PrimeNumber.h"
 #include <algorithm>
 
+/**
+ * Hash map with quadratic probing
+ */
 template <typename Object>
 class HashTable : public BaseHashTable<Object>
 {
 public:
-  HashTable(size_t ts = nextPrime(100), hash<Object> h = hash<Object>{})
-  : table(ts)
+  HashTable(size_t ts = 100, hash<Object> h = hash<Object>{})
+  : table(nextPrime(ts))
   , hashFunction(h)
   {
   }
@@ -48,7 +52,14 @@ public:
     currentSize = 0;
   }
 
-private:
+  size_t getCollisionCount() const
+  {
+    return collisionCount;
+  }
+
+protected:
+  size_t collisionCount{};
+
   enum class State
   {
     Empty,
@@ -79,7 +90,7 @@ private:
   /**
    * Find a cell that either contais obj or can store obj
    */
-  size_t findPos(const Object& obj) const
+  virtual size_t findPos(const Object& obj) const
   {
     size_t pos = calcHashValue(obj);
     size_t offset = 1;
@@ -101,7 +112,7 @@ private:
     currentSize = 0;
     for (auto& cell : old) {
       if (cell.state == State::Active) {
-        insert(std::move(cell.element));
+        insertImpl(std::move(cell.element));
       }
     }
   }
@@ -112,6 +123,10 @@ private:
     size_t pos = findPos(obj);
     if (table[pos].state == State::Active) {
       return false;
+    }
+    size_t initialPos = calcHashValue(obj);
+    if (initialPos != pos) {
+      ++collisionCount;
     }
 
     if (table[pos].state == State::Empty) {

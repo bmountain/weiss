@@ -29,28 +29,12 @@ public:
 
   bool insert(const Object& obj)
   {
-    if (contains(obj)) {
-      return false;
-    } else {
-      table[calcHashValue(obj)].push_front(obj);
-      if (++currentSize > table.size()) {
-        rehash();
-      }
-      return true;
-    }
+    return insertImpl(obj);
   }
 
   bool insert(Object&& obj)
   {
-    if (contains(obj)) {
-      return false;
-    } else {
-      table[calcHashValue(obj)].emplace_front(std::move(obj));
-      if (++currentSize > table.size()) {
-        rehash();
-      }
-      return true;
-    }
+    return insertImpl(obj);
   }
 
   bool remove(const Object& obj)
@@ -64,10 +48,16 @@ public:
     }
   }
 
+  size_t getCollisionCount() const
+  {
+    return collisionCount;
+  }
+
 private:
   size_t currentSize = 0;
   std::vector<std::forward_list<Object>> table;
   hash<Object> hashFunc;
+  size_t collisionCount{};
   size_t calcHashValue(const Object& obj) const
   {
     return hashFunc(obj) % table.size();
@@ -81,6 +71,24 @@ private:
       for (const auto& item : row) {
         table[calcHashValue(item)].push_front(item);
       }
+    }
+  }
+
+  template <typename T>
+  bool insertImpl(T&& obj)
+  {
+    if (contains(obj)) {
+      return false;
+    } else {
+      size_t hv = calcHashValue(obj);
+      if (!table[hv].empty()) {
+        ++collisionCount;
+      }
+      table[hv].emplace_front(std::move(obj));
+      if (++currentSize > table.size()) {
+        rehash();
+      }
+      return true;
     }
   }
 };

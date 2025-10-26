@@ -1,5 +1,7 @@
+#include "DoubleHashTable.h"
 #include "Hash.h"
 #include "HashTable.h"
+#include "LinearProbing.h"
 #include "PrimeNumber.h"
 #include "SeparatedChaining.h"
 #include <gtest/gtest.h>
@@ -27,6 +29,32 @@ TEST(TestSeparatedChainning, Basic)
 TEST(TestQuadraticProbing, Basic)
 {
   HashTable<std::string> ht{5, hash<std::string>{}};
+  EXPECT_TRUE(ht.insert("Hello"));
+  EXPECT_TRUE(ht.contains("Hello"));
+  EXPECT_FALSE(ht.insert("Hello"));
+  EXPECT_TRUE(ht.remove("Hello"));
+  EXPECT_FALSE(ht.contains("Hello"));
+  for (size_t i = 0; i != 20; ++i) {
+    EXPECT_TRUE(ht.insert(std::to_string(i)));
+  }
+}
+
+TEST(TestDoubleHash, Basic)
+{
+  DoubleHashTable<std::string> ht{5, hash<std::string>{}, double_hash<std::string>{}};
+  EXPECT_TRUE(ht.insert("Hello"));
+  EXPECT_TRUE(ht.contains("Hello"));
+  EXPECT_FALSE(ht.insert("Hello"));
+  EXPECT_TRUE(ht.remove("Hello"));
+  EXPECT_FALSE(ht.contains("Hello"));
+  for (size_t i = 0; i != 20; ++i) {
+    EXPECT_TRUE(ht.insert(std::to_string(i)));
+  }
+}
+
+TEST(TestLinearHash, Basic)
+{
+  LinearHashTable<std::string> ht{5, hash<std::string>{}};
   EXPECT_TRUE(ht.insert("Hello"));
   EXPECT_TRUE(ht.contains("Hello"));
   EXPECT_FALSE(ht.insert("Hello"));

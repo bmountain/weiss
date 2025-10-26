@@ -17,6 +17,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_SOURCE_DIR}/bin")
 include(cmake/gtest.cmake)
 include(cmake/macro.cmake)
 
+add_subdirectory(utility)
 add_subdirectory(ch1)
 add_subdirectory(ch2)
 add_subdirectory(ch3)
